@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Casco</title>
+  <meta name="description" content="Tu mentor diario para la oposición a bombero">
+  <meta name="theme-color" content="#14110f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Casco">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="layout">
+    <nav class="tabs" id="tabs">
+      <div class="brand"><img src="icons/icon-192.png" alt=""><span>Casco</span></div>
+      <a href="#hoy" data-tab="hoy"><span class="ti">🔥</span><span>Hoy</span></a>
+      <a href="#pomodoro" data-tab="pomodoro"><span class="ti">⏱️</span><span>Pomodoro</span></a>
+      <a href="#temario" data-tab="temario"><span class="ti">📚</span><span>Temario</span></a>
+      <a href="#tecnicas" data-tab="tecnicas"><span class="ti">🧠</span><span>Técnicas</span></a>
+      <a href="#progreso" data-tab="progreso"><span class="ti">📈</span><span>Progreso</span></a>
+      <a href="#ajustes" data-tab="ajustes" class="only-wide"><span class="ti">⚙️</span><span>Ajustes</span></a>
+    </nav>
+    <main id="app"></main>
+  </div>
+  <div id="modal" class="modal" hidden></div>
+  <div id="toast" class="toast" hidden></div>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
