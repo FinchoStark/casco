@@ -555,6 +555,9 @@ function vistaAjustes() {
     <div class="card small"><b>iPhone:</b> abre esta página en Safari → botón Compartir → «Añadir a pantalla de inicio».<br>
       <b>Android:</b> en Chrome, menú ⋮ → «Instalar aplicación».<br>
       <b>Ordenador:</b> en Chrome o Edge, el icono de instalar de la barra de direcciones.</div>
+    <h2>🎬 Intro</h2>
+    <div class="card"><p class="muted small" style="margin-top:0">El tutorial del principio: cómo funciona la app y cómo será el plan.</p>
+      <button class="btn" data-act="intro">▶ Ver la intro otra vez</button></div>
     <h2>💾 Copia de seguridad</h2>
     <div class="card"><p class="muted small" style="margin-top:0">Los datos se guardan solo en este dispositivo. Para pasarlos del móvil al ordenador (o al revés), o para no perderlos, haz una copia y cárgala en el otro.</p>
       <div class="row wrap"><button class="btn" data-act="exportar">⬇️ Descargar copia</button>
@@ -581,14 +584,114 @@ function crearIcs() {
   descargar('alarma-estudio.ics', 'text/calendar', ics);
 }
 
-/* ---------- Bienvenida ---------- */
-function bienvenida() {
-  modal(`<h3 style="font-size:22px">🧑‍🚒 Bienvenido a Casco</h3>
-    <p>Tu mentor de estudio para la oposición. Cada día te dice qué toca, te guía en cada pomodoro y te devuelve los temas cuando toca repasarlos. Los tests y las clases siguen en Formación Ninja.</p>
-    <p><b>Empezamos suave:</b> nivel 1, <b>2 pomodoros al día</b> (menos de una hora). El objetivo de las primeras semanas no es avanzar temario, es <b>sentarse cada día</b>.</p>
-    <p class="small muted">Reglas: misma hora y mismo sitio · móvil lejos · nunca dos días seguidos sin estudiar · el domingo se descansa.</p>
-    <label class="f">¿A qué hora vas a estudiar?</label><input type="time" id="hora0" value="${st.ajustes.hora}">
-    <button class="btn primary block" style="margin-top:16px" data-act="empezar">¡Empezar hoy!</button>`);
+/* ---------- Intro (como el opening de un videojuego) ---------- */
+const INTRO = [
+  () => `<div class="i-title">
+      <img class="i-flame r" src="icons/icon-512.png" alt="">
+      <h1 class="r" style="--d:.3s">CASCO</h1>
+      <p class="r" style="--d:.7s">Tu mentor de estudio, de hoy al examen</p>
+      <p class="i-blink r" style="--d:1.4s">Toca para empezar</p></div>`,
+  () => `<div class="i-ico r">🚒</div><p class="i-kicker r" style="--d:.1s">Capítulo 1</p><h2 class="r" style="--d:.2s">La misión</h2>
+      <p class="r" style="--d:.35s">Plaza de <b>Bombero/a Especialista del Ayuntamiento de Madrid</b>.</p>
+      <div class="i-chips r" style="--d:.5s"><span>📝 90 preguntas en 95 min</span><span>🎯 Corte de 2026: 58 netas de 87</span><span>📅 Examen previsto: verano de 2027</span></div>
+      <p class="i-note r" style="--d:.7s">No hay prisa. Si no es este año, será el siguiente. Lo primero es construir el <b>hábito</b>.</p>`,
+  () => `<div class="i-ico r">🔥</div><p class="i-kicker r" style="--d:.1s">Capítulo 2</p><h2 class="r" style="--d:.2s">Cada día, una misión</h2>
+      <p class="r" style="--d:.35s">Abres la app, miras <b>Hoy</b> y haces lo que toca. Nada más.</p>
+      <div class="i-list">
+        <div class="r" style="--d:.5s"><span>🔁</span><div><b>Repaso</b><small>Los temas que toca refrescar hoy</small></div></div>
+        <div class="r" style="--d:.65s"><span>📖</span><div><b>Tema nuevo</b><small>Qué tema y qué páginas exactas</small></div></div>
+        <div class="r" style="--d:.8s"><span>📝</span><div><b>Cierre</b><small>Folio en blanco y test en Ninja</small></div></div>
+      </div>`,
+  () => `<div class="i-ring r"><b>25:00</b><span>Foco</span></div><p class="i-kicker r" style="--d:.1s">Capítulo 3</p><h2 class="r" style="--d:.2s">El pomodoro</h2>
+      <p class="r" style="--d:.35s"><b>25 minutos</b> de foco total y <b>5</b> de descanso. El móvil, lejos.</p>
+      <p class="i-note r" style="--d:.55s">Durante el pomodoro, la app te va diciendo los pasos: prelectura, lectura, subrayado… Al terminar, apuntas hasta qué página llegaste.</p>`,
+  () => `<div class="i-chain r">${['✓', '✓', '✓', '✓', '✓', '✓', '·'].map((c, i) => `<span class="${c === '·' ? 'rest' : ''}" style="--d:${.1 + i * .08}s">${c}</span>`).join('')}</div>
+      <p class="i-kicker r" style="--d:.1s">Capítulo 4</p><h2 class="r" style="--d:.2s">La cadena</h2>
+      <p class="r" style="--d:.4s">Cada día que estudias, la cadena crece. Las reglas son sencillas:</p>
+      <div class="i-chips r" style="--d:.6s"><span>⛓️ Nunca dos días seguidos sin estudiar</span><span>🛌 El domingo se descansa y no rompe la cadena</span><span>🩹 ¿Un día malo? Con 1 pomodoro basta</span></div>`,
+  () => `<p class="i-kicker r">Capítulo 5</p><h2 class="r" style="--d:.1s">Sube de nivel</h2>
+      <div class="i-levels">${NIVELES.map((n, i) => `<div class="r" style="--d:${.25 + i * .12}s"><b>${n.nombre}</b><span>${'🔥'.repeat(i + 1)}</span><small>${n.pomos} pomodoros/día</small></div>`).join('')}</div>
+      <p class="i-note r" style="--d:.95s">Empiezas en <b>Chispa</b>, con menos de una hora al día. Tras dos semanas cumpliendo, la app te propone subir, pero decides tú. Cada nivel desbloquea <b>técnicas de estudio</b> nuevas.</p>`,
+  () => `<div class="i-ico r">🧠</div><p class="i-kicker r" style="--d:.1s">Capítulo 6</p><h2 class="r" style="--d:.2s">Memoria de examen</h2>
+      <p class="r" style="--d:.35s">Al terminar un tema, la app te lo devuelve para repasarlo justo antes de que se olvide:</p>
+      <div class="i-spaced r" style="--d:.55s">${['+1', '+3', '+7', '+15', '+30'].map(x => `<span>${x}<small>días</small></span>`).join('<i></i>')}</div>
+      <p class="i-note r" style="--d:.75s">Sin repasos, en un mes se olvida casi todo. Con ellos, llega al examen.</p>`,
+  () => `<div class="i-ico r">🥷</div><p class="i-kicker r" style="--d:.1s">Capítulo 7</p><h2 class="r" style="--d:.2s">Tu equipo: Formación Ninja</h2>
+      <p class="r" style="--d:.35s">Las <b>clases</b> y los <b>tests</b> siguen en Ninja. Casco te dice cuándo hacerlos y te lleva directo con un botón.</p>
+      <p class="i-note r" style="--d:.55s">Después de cada test apuntas aciertos y fallos, y ves tus netas frente al corte.</p>`,
+  () => `<p class="i-kicker r">Capítulo 8</p><h2 class="r" style="--d:.1s">El plan</h2>
+      <div class="i-road">
+        ${[['🌱', 'Hábito', 'nov – dic', 'Sentarse cada día'], ['📖', 'Primera vuelta', 'ene – abr', 'Todo el temario, tema a tema'],
+          ['🔁', 'Segunda vuelta', 'may – jun', 'Repaso y tests por bloques'], ['⏱️', 'Simulacros', 'jun – jul', 'Exámenes completos cronometrados'],
+          ['🎯', 'Examen', 'verano de 2027', '']].map(([ic, t, f, d], i) =>
+          `<div class="r" style="--d:${.25 + i * .15}s"><span>${ic}</span><div><b>${t}</b> <em>${f}</em>${d ? `<small>${d}</small>` : ''}</div></div>`).join('')}
+      </div>
+      <p class="i-note r" style="--d:1.1s">Es orientativo: el plan se adapta a tu ritmo, no al revés.</p>`,
+  () => st.inicio
+    ? `<div class="i-ico r">🧑‍🚒</div><h2 class="r" style="--d:.1s">Eso es todo</h2><p class="r" style="--d:.25s">Vuelve a la app y sigue con tu cadena.</p>
+       <button class="btn primary block r" style="--d:.4s;margin-top:20px" data-i="fin">Volver a la app</button>`
+    : `<div class="i-ico r">⏰</div><p class="i-kicker r" style="--d:.1s">Último paso</p><h2 class="r" style="--d:.2s">¿A qué hora empieza tu turno de estudio?</h2>
+       <p class="r" style="--d:.35s">Siempre a la misma hora y en el mismo sitio: así el hábito se pega solo.</p>
+       <input class="r" style="--d:.5s" type="time" id="hora0" value="${st.ajustes.hora}">
+       <button class="btn primary block r" style="--d:.65s;margin-top:16px" data-i="fin">🔥 Empezar mi primer turno</button>
+       <p class="i-note r" style="--d:.8s">Hoy toca nivel Chispa: 2 pomodoros. Menos de una hora.</p>`,
+];
+let introPos = 0;
+function intro(desde = 0) {
+  let el = $('#intro');
+  if (!el) {
+    el = document.createElement('div'); el.id = 'intro'; el.className = 'intro';
+    el.innerHTML = `<div class="i-embers">${Array.from({ length: 22 }, () =>
+      `<i style="left:${Math.random() * 100}%;--t:${6 + Math.random() * 8}s;--w:${-Math.random() * 12}s;--s:${2 + Math.random() * 4}px"></i>`).join('')}</div>
+      <div class="i-bar"></div><button class="i-skip" data-i="saltar">Saltar intro ⏭</button>
+      <div class="i-stage"></div>
+      <div class="i-nav"><button class="i-back" data-i="atras" aria-label="Atrás">‹</button><button class="btn primary" data-i="sig">Siguiente ›</button></div>`;
+    document.body.appendChild(el);
+    el.addEventListener('click', e => {
+      const b = e.target.closest('[data-i]');
+      if (b) {
+        const a = b.dataset.i;
+        if (a === 'sig') introIr(introPos + 1);
+        if (a === 'atras') introIr(introPos - 1);
+        if (a === 'saltar') { if (st.inicio) cerrarIntro(); else introIr(INTRO.length - 1); }
+        if (a === 'fin') cerrarIntro();
+        return;
+      }
+      if (e.target.closest('input, button, a')) return;
+      if (introPos < INTRO.length - 1) introIr(introPos + 1);    // tocar en cualquier sitio avanza
+    });
+    let x0 = null;
+    el.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+    el.addEventListener('touchend', e => {
+      if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (Math.abs(dx) > 60) { e.preventDefault(); introIr(introPos + (dx < 0 ? 1 : -1)); }
+    });
+  }
+  introIr(desde);
+}
+function introIr(n) {
+  const el = $('#intro'); if (!el) return;
+  introPos = Math.max(0, Math.min(INTRO.length - 1, n));
+  el.querySelector('.i-stage').innerHTML = `<div class="i-slide ${introPos === 0 ? 'first' : ''}">${INTRO[introPos]()}</div>`;
+  el.querySelector('.i-bar').innerHTML = INTRO.map((_, i) => `<i class="${i <= introPos ? 'on' : ''}"></i>`).join('');
+  const ultima = introPos === INTRO.length - 1;
+  el.querySelector('.i-nav').style.visibility = introPos === 0 || ultima ? 'hidden' : 'visible';
+  el.querySelector('.i-back').style.visibility = introPos > 1 ? 'visible' : 'hidden';
+  el.querySelector('.i-skip').style.visibility = ultima ? 'hidden' : 'visible';
+}
+document.addEventListener('keydown', e => {
+  if (!$('#intro') || e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); introIr(introPos + 1); }
+  if (e.key === 'ArrowLeft') introIr(introPos - 1);
+  if (e.key === 'Escape') { if (st.inicio) cerrarIntro(); else introIr(INTRO.length - 1); }
+});
+function cerrarIntro() {
+  const h = $('#hora0');
+  if (!st.inicio) { st.ajustes.hora = (h && h.value) || st.ajustes.hora; st.inicio = hoy(); }
+  st.introVista = true; guardar();
+  const el = $('#intro'); el.classList.add('out');
+  setTimeout(() => el.remove(), 450);
+  render();
 }
 
 /* ---------- Router y eventos ---------- */
@@ -607,8 +710,7 @@ document.addEventListener('click', e => {
   const act = el.dataset.act, id = el.dataset.tema;
   switch (act) {
     case 'cerrar': cerrarModal(); break;
-    case 'empezar':
-      st.ajustes.hora = $('#hora0').value || st.ajustes.hora; st.inicio = st.inicio || hoy(); guardar(); cerrarModal(); render(); break;
+    case 'intro': intro(0); break;
     case 'pomo':
       st.ctx = { tipo: el.dataset.tipo, tema: id || null }; guardar(); cerrarModal();
       if (location.hash !== '#pomodoro') location.hash = 'pomodoro'; else render(); break;
@@ -648,7 +750,7 @@ document.addEventListener('click', e => {
     case 'notif': Notification.requestPermission().then(render); break;
     case 'exportar': descargar(`casco-copia-${hoy()}.json`, 'application/json', JSON.stringify(st, null, 1)); break;
     case 'borrar':
-      if (confirm('¿Seguro? Se borra todo lo apuntado en este dispositivo. Haz antes una copia si la quieres.')) { st = estadoNuevo(); guardar(); render(); bienvenida(); }
+      if (confirm('¿Seguro? Se borra todo lo apuntado en este dispositivo. Haz antes una copia si la quieres.')) { st = estadoNuevo(); guardar(); render(); intro(0); }
       break;
   }
 });
@@ -679,5 +781,5 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) { if
 
 setInterval(tick, 500);
 render();
-if (!st.inicio) bienvenida();
+if (!st.inicio) intro(0);
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
