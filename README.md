@@ -13,6 +13,14 @@ Los tests y las clases se hacen en Formación Ninja: la app solo enlaza a su pla
 
 Los datos se guardan en `localStorage`, en el propio dispositivo. Para pasarlos de uno a otro se usa la copia de seguridad.
 
+## Perfiles
+
+- `/casco/nacho/`: el perfil de Nacho.
+- `/casco/fincho/`: el perfil de admin. Es igual, pero en Ajustes tiene un **modo pruebas**: simular la fecha, avanzar un día, cargar datos de ejemplo, un pomodoro de 10 segundos y empezar de cero.
+- `/casco/`: página de entrada. Pregunta quién entra y recuerda la elección; con `?elegir` vuelve a preguntar.
+
+Cada perfil guarda sus datos aparte (`casco-v1-nacho`, `casco-v1-fincho`). No hay contraseña ni servidor: cada uno ve solo los datos de su propio dispositivo.
+
 ## Probar en local
 
 ```

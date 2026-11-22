@@ -1,7 +1,18 @@
 'use strict';
 /* Casco: mentor diario de estudio. Todo se guarda en este dispositivo (localStorage). */
 
-const CLAVE = 'casco-v1';
+// Perfil: lo fija cada dirección (/nacho/, /fincho/). Cada perfil guarda sus datos aparte.
+const PERFIL = window.CASCO_PERFIL || 'nacho';
+const ADMIN = PERFIL === 'fincho';
+const TITULO = document.title;
+const BASE = window.CASCO_BASE || '';   // ruta a la raíz de la app desde la página
+const CLAVE = 'casco-v1-' + PERFIL;
+try {   // los datos de antes de haber perfiles pasan a Nacho
+  if (PERFIL === 'nacho' && !localStorage.getItem(CLAVE) && localStorage.getItem('casco-v1')) {
+    localStorage.setItem(CLAVE, localStorage.getItem('casco-v1')); localStorage.removeItem('casco-v1');
+  }
+  localStorage.setItem('casco-perfil', PERFIL);
+} catch (e) { /* sin almacenamiento */ }
 const CORTE = { netas: 58, de: 87 };            // corte del test en 2026
 const GAPS = [1, 2, 4, 8, 15];                  // días entre repasos (= +1, +3, +7, +15, +30); luego cada 30
 const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -42,7 +53,8 @@ const dow = s => aFecha(s).getDay();
 const diasEntre = (a, b) => Math.round((aFecha(b) - aFecha(a)) / 864e5);
 const bonita = s => { const d = aFecha(s); return `${DIAS[d.getDay()].toLowerCase()} ${d.getDate()} ${MESES[d.getMonth()]}`; };
 function hoy() {
-  const q = new URLSearchParams(location.search).get('hoy');   // solo para pruebas
+  // Solo para pruebas: ?hoy=aaaa-mm-dd, o la fecha simulada del modo pruebas del admin
+  const q = new URLSearchParams(location.search).get('hoy') || (ADMIN && st && st.fechaPrueba);
   return q && /^\d{4}-\d{2}-\d{2}$/.test(q) ? q : clave(new Date());
 }
 function lunes(s) { const w = dow(s); return sumar(s, w === 0 ? -6 : 1 - w); }
@@ -234,8 +246,8 @@ function vistaHoy() {
 
   return `<div class="top">
     <a href="#ajustes" class="gear-mobile" aria-label="Ajustes">⚙️</a>
-    <p class="muted small" style="margin:0">${bonita(h)}</p>
-    <h1>Hoy</h1></div>
+    <p class="muted small" style="margin:0">${bonita(h)}${ADMIN ? ` · <span class="chip warn">🛠️ admin${st.fechaPrueba ? ' · fecha simulada' : ''}</span>` : ''}</p>
+    <h1>Hoy, ${PERFIL === 'nacho' ? 'Nacho' : 'Fincho'}</h1></div>
     <div class="card">
       <div class="streak"><div class="big">🔥</div><div class="grow"><div class="num">${r} día${r === 1 ? '' : 's'}</div>
       <div class="muted small">de cadena · nivel ${niv.n} · ${niv.nombre}</div></div>
@@ -316,7 +328,7 @@ async function avisar(texto) {
   try {
     if ('Notification' in window && Notification.permission === 'granted') {
       const reg = await navigator.serviceWorker.getRegistration();
-      if (reg) reg.showNotification('Casco', { body: texto, icon: 'icons/icon-192.png' });
+      if (reg) reg.showNotification('Casco', { body: texto, icon: BASE + 'icons/icon-192.png' });
       else new Notification('Casco', { body: texto });
     }
   } catch (e) { /* nada */ }
@@ -337,18 +349,18 @@ function sumarPomodoro(min, completo) {
 function tick() {
   const tm = st.timer;
   const reloj = $('#reloj'), arc = $('#arc');
-  if (!tm) { if (reloj) reloj.textContent = `${pad(st.ajustes.foco)}:00`; if (document.title !== 'Casco') document.title = 'Casco'; return; }
+  if (!tm) { if (reloj) reloj.textContent = `${pad(st.ajustes.foco)}:00`; if (document.title !== TITULO) document.title = TITULO; return; }
   const resto = tm.resto != null ? tm.resto : tm.fin - Date.now();
   if (resto <= 0) return terminarFase();
   if (reloj) {
     const s = Math.ceil(resto / 1000);
     reloj.textContent = `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
     arc.setAttribute('stroke-dashoffset', String(282.7 * (1 - resto / (tm.dur * 60000))));
-    document.title = `${pad(Math.floor(s / 60))}:${pad(s % 60)} · Casco`;
+    document.title = `${pad(Math.floor(s / 60))}:${pad(s % 60)} · ${TITULO}`;
   }
 }
 function terminarFase() {
-  const tm = st.timer; st.timer = null; document.title = 'Casco';
+  const tm = st.timer; st.timer = null; document.title = TITULO;
   if (tm.fase === 'foco') {
     sumarPomodoro(tm.dur, true);
     avisar('¡Pomodoro hecho! Toca descanso.');
@@ -555,6 +567,16 @@ function vistaAjustes() {
     <div class="card small"><b>iPhone:</b> abre esta página en Safari → botón Compartir → «Añadir a pantalla de inicio».<br>
       <b>Android:</b> en Chrome, menú ⋮ → «Instalar aplicación».<br>
       <b>Ordenador:</b> en Chrome o Edge, el icono de instalar de la barra de direcciones.</div>
+    ${ADMIN ? `<h2>🛠️ Modo pruebas (solo admin)</h2>
+    <div class="card"><p class="muted small" style="margin-top:0">Este perfil es tuyo y no toca los datos de Nacho, que están en su móvil.</p>
+      <label class="f">Simular que hoy es…</label>
+      <div class="row"><input type="date" id="fecha-prueba" value="${st.fechaPrueba || ''}">
+      <button class="btn small" data-act="fecha-real">Fecha real</button></div>
+      <div class="row wrap" style="margin-top:12px">
+        <button class="btn small" data-act="dia-sig">⏩ Avanzar un día</button>
+        <button class="btn small" data-act="demo">🎲 Cargar 3 semanas de ejemplo</button>
+        <button class="btn small" data-act="pomo-rapido">⚡ Pomodoro de 10 segundos</button>
+        <button class="btn small ghost" data-act="cero">🧹 Empezar de cero</button></div></div>` : ''}
     <h2>🎬 Intro</h2>
     <div class="card"><p class="muted small" style="margin-top:0">El tutorial del principio: cómo funciona la app y cómo será el plan.</p>
       <button class="btn" data-act="intro">▶ Ver la intro otra vez</button></div>
@@ -563,7 +585,7 @@ function vistaAjustes() {
       <div class="row wrap"><button class="btn" data-act="exportar">⬇️ Descargar copia</button>
       <label class="btn">⬆️ Cargar copia<input type="file" id="importar" accept="application/json,.json" hidden></label></div>
       <hr><button class="btn ghost small" data-act="borrar">Borrar todos los datos</button></div>
-    <p class="muted small">Casco · versión 3 · herramienta personal de estudio. No está vinculada a Formación Ninja: solo enlaza a su plataforma.</p>`;
+    <p class="muted small">Casco · versión 4 · herramienta personal de estudio. No está vinculada a Formación Ninja: solo enlaza a su plataforma.</p>`;
 }
 function descargar(nombre, tipo, texto) {
   const a = document.createElement('a');
@@ -587,7 +609,7 @@ function crearIcs() {
 /* ---------- Intro (como el opening de un videojuego) ---------- */
 const INTRO = [
   () => `<div class="i-title">
-      <img class="i-flame r" src="icons/icon-512.png" alt="">
+      <img class="i-flame r" src="${BASE}icons/icon-512.png" alt="">
       <h1 class="r" style="--d:.3s">CASCO</h1>
       <p class="r" style="--d:.7s">Tu mentor de estudio, de hoy al examen</p>
       <p class="i-blink r" style="--d:1.4s">Toca para empezar</p></div>`,
@@ -711,6 +733,22 @@ document.addEventListener('click', e => {
   switch (act) {
     case 'cerrar': cerrarModal(); break;
     case 'intro': intro(0); break;
+    case 'fecha-real': st.fechaPrueba = null; guardar(); render(); toast('Fecha real'); break;
+    case 'dia-sig': st.fechaPrueba = sumar(hoy(), 1); guardar(); render(); toast(`Ahora es ${bonita(hoy())}`); break;
+    case 'demo': {
+      const h = hoy(); st.inicio = st.inicio && st.inicio < sumar(h, -21) ? st.inicio : sumar(h, -21);
+      for (let i = 21; i >= 1; i--) { const s = sumar(h, -i); if (dow(s) !== 0 && Math.random() > .12) st.dias[s] = { pomos: nivel().pomos, min: nivel().pomos * 25 }; }
+      const e1 = et('e1'); e1.pag = 43; e1.fin = e1.fin || sumar(h, -4);
+      et('e2').pag = Math.max(et('e2').pag, 12);
+      st.tests.push({ fecha: sumar(h, -3), tema: 'e1', a: 14, f: 4, b: 2 }, { fecha: sumar(h, -1), tema: 'mixto', a: 16, f: 3, b: 1 });
+      guardar(); render(); toast('Datos de ejemplo cargados'); break;
+    }
+    case 'pomo-rapido':
+      prepararAudio(); st.ctx = st.ctx || { tipo: 'libre', tema: null };
+      st.timer = { fase: 'foco', dur: st.ajustes.foco, fin: Date.now() + 10000, resto: null }; guardar();
+      location.hash = 'pomodoro'; break;
+    case 'cero':
+      if (confirm('¿Borrar los datos de pruebas de este perfil?')) { st = estadoNuevo(); guardar(); render(); intro(0); } break;
     case 'pomo':
       st.ctx = { tipo: el.dataset.tipo, tema: id || null }; guardar(); cerrarModal();
       if (location.hash !== '#pomodoro') location.hash = 'pomodoro'; else render(); break;
@@ -724,7 +762,7 @@ document.addEventListener('click', e => {
         const hecho = (tm.dur * 60000 - (tm.resto != null ? tm.resto : tm.fin - Date.now())) / 60000;
         if (hecho >= 1) { sumarPomodoro(hecho, false); toast(`Se apuntan ${Math.round(hecho)} min netos (no cuenta como pomodoro)`); }
       }
-      st.timer = null; guardar(); soltarWakeLock(); document.title = 'Casco'; render(); break;
+      st.timer = null; guardar(); soltarWakeLock(); document.title = TITULO; render(); break;
     }
     case 'repasado': repasar(id); cerrarModal(); toast('🔁 Repaso apuntado'); render(); break;
     case 'terminar': terminarTema(id); cerrarModal(); toast('🏁 ¡Tema terminado! Mañana toca su primer repaso'); render(); break;
@@ -757,6 +795,7 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.id === 'hora') { st.ajustes.hora = t.value; guardar(); toast('Hora guardada. Vuelve a añadir la alarma al calendario.'); }
+  if (t.id === 'fecha-prueba') { st.fechaPrueba = t.value || null; guardar(); render(); toast(t.value ? `Ahora es ${bonita(hoy())}` : 'Fecha real'); }
   if (t.id === 'foco') { st.ajustes.foco = +t.value; guardar(); }
   if (t.id === 'desc') { st.ajustes.descanso = +t.value; guardar(); }
   if (t.id === 'nivel') { st.nivel = +t.value; st.oferta = lunes(hoy()); guardar(); render(); }
@@ -787,5 +826,5 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   const habiaSW = !!navigator.serviceWorker.controller;
   let recargado = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (habiaSW && !recargado && !st.timer) { recargado = true; location.reload(); } });
-  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update()).catch(() => {});
+  navigator.serviceWorker.register(BASE + 'sw.js', { scope: BASE || './', updateViaCache: 'none' }).then(r => r.update()).catch(() => {});
 }

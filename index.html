@@ -4,33 +4,50 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Casco</title>
-  <meta name="description" content="Tu mentor diario para la oposición a bombero">
   <meta name="theme-color" content="#14110f">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Casco">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <script>
+    // Entrada: si ya se eligió perfil en este dispositivo, va directo (salvo con ?elegir)
+    (function () {
+      if (/[?&]elegir/.test(location.search)) return;
+      try {
+        var p = localStorage.getItem('casco-perfil');
+        if (!p && localStorage.getItem('casco-v1')) p = 'nacho';   // datos de antes de los perfiles
+        if (p === 'nacho' || p === 'fincho') location.replace(p + '/');
+      } catch (e) { /* sin almacenamiento */ }
+    })();
+  </script>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at 50% 115%, #5a1d10 0%, #2a120c 35%, #0c0a09 75%); color: #f6efe9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 24px 16px;
+    }
+    .box { width: 100%; max-width: 380px; text-align: center; }
+    img { width: 96px; height: 96px; border-radius: 24px; box-shadow: 0 0 50px rgba(255,100,40,.45); }
+    h1 { font-size: 44px; letter-spacing: .14em; margin: 14px 0 4px; font-weight: 900;
+      background: linear-gradient(180deg, #fff3d6, #ff8a3d 55%, #e8412c); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    p { color: #b3a59a; margin: 0 0 28px; }
+    a { display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; text-align: left;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 16px; padding: 16px 18px; margin-bottom: 12px; }
+    a:hover { border-color: #e8412c; }
+    a span { font-size: 30px; }
+    a small { display: block; color: #b3a59a; }
+  </style>
 </head>
 <body>
-  <div class="layout">
-    <nav class="tabs" id="tabs">
-      <div class="brand"><img src="icons/icon-192.png" alt=""><span>Casco</span></div>
-      <a href="#hoy" data-tab="hoy"><span class="ti">🔥</span><span>Hoy</span></a>
-      <a href="#pomodoro" data-tab="pomodoro"><span class="ti">⏱️</span><span>Pomodoro</span></a>
-      <a href="#temario" data-tab="temario"><span class="ti">📚</span><span>Temario</span></a>
-      <a href="#tecnicas" data-tab="tecnicas"><span class="ti">🧠</span><span>Técnicas</span></a>
-      <a href="#progreso" data-tab="progreso"><span class="ti">📈</span><span>Progreso</span></a>
-      <a href="#ajustes" data-tab="ajustes" class="only-wide"><span class="ti">⚙️</span><span>Ajustes</span></a>
-    </nav>
-    <main id="app"></main>
+  <div class="box">
+    <img src="icons/icon-512.png" alt="">
+    <h1>CASCO</h1>
+    <p>¿Quién entra?</p>
+    <a href="nacho/"><span>🧑‍🚒</span><div><b>Nacho</b><small>Mi plan de estudio</small></div></a>
+    <a href="fincho/"><span>🛠️</span><div><b>Fincho</b><small>Admin · para hacer pruebas</small></div></a>
   </div>
-  <div id="modal" class="modal" hidden></div>
-  <div id="toast" class="toast" hidden></div>
-  <script src="data.js?v=3"></script>
-  <script src="app.js?v=3"></script>
 </body>
 </html>
