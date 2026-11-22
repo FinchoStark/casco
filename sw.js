@@ -1,5 +1,5 @@
 // Service worker: deja la app disponible sin conexión.
-const CACHE = 'casco-v4';
+const CACHE = 'casco-v5';
 const FILES = ['./', 'index.html', 'nacho/', 'fincho/', 'nacho/manifest.webmanifest', 'fincho/manifest.webmanifest', 'styles.css', 'data.js', 'app.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 

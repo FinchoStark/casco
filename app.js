@@ -262,6 +262,11 @@ function vistaHoy() {
       <button class="btn ghost small" data-act="mas-pomo">＋ Apuntar un pomodoro hecho sin la app</button>
       ${ninja(NINJA.inicio, 'Abrir Formación Ninja')}
     </div>
+    ${ES_IOS && !st.atajosHecho && !st.atajosAviso && st.inicio ? `<div class="card" style="margin-top:12px">
+      <div class="row"><span style="font-size:26px">⏰</span><div class="grow"><b>¿Que suene una alarma de verdad?</b>
+      <div class="muted small">Conecta el Reloj del iPhone con Casco en 3 minutos.</div></div></div>
+      <div class="row" style="margin-top:10px"><button class="btn small primary" data-act="atajos">Ver cómo</button>
+      <button class="btn small ghost" data-act="atajos-no">Ahora no</button></div></div>` : ''}
     <h2>Técnica del día</h2>
     <a class="card tec" href="#tecnicas" style="display:block;text-decoration:none;color:inherit">
       <div class="head"><span class="ico">${tecHoy.icono}</span><div><b>${tecHoy.nombre}</b><div class="muted small">${tecHoy.corto}</div></div></div>
@@ -551,7 +556,10 @@ function vistaAjustes() {
     <div class="card"><label class="f">Hora de estudio (siempre la misma: el hábito se ata a una hora)</label>
       <input type="time" id="hora" value="${a.hora}">
       <p class="muted small">Esto crea un evento que se repite de lunes a sábado, con aviso, en el calendario del móvil o del ordenador. En el iPhone, ábrelo y pulsa «Añadir todo».</p>
-      <button class="btn primary block" data-act="ics">📅 Añadir la alarma al calendario</button></div>
+      <button class="btn block" data-act="ics">📅 Añadir la alarma al calendario</button></div>
+    <div class="card hot"><h3>📱 Alarma de verdad en el iPhone ${st.atajosHecho ? '<span class="chip ok">conectada</span>' : ''}</h3>
+      <p class="muted small" style="margin-top:0">Suena la alarma del Reloj y, al apagarla, se abre Casco solo. Se monta una vez con la app Atajos, en unos 3 minutos.</p>
+      <button class="btn primary block" data-act="atajos">Ver la guía paso a paso</button></div>
     <h2>⏱️ Pomodoro</h2>
     <div class="card"><div class="grid3" style="grid-template-columns:1fr 1fr">
       <div><label class="f">Foco (min)</label><select id="foco">${[25, 30, 40, 50].map(v => `<option ${v === a.foco ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
@@ -585,7 +593,7 @@ function vistaAjustes() {
       <div class="row wrap"><button class="btn" data-act="exportar">⬇️ Descargar copia</button>
       <label class="btn">⬆️ Cargar copia<input type="file" id="importar" accept="application/json,.json" hidden></label></div>
       <hr><button class="btn ghost small" data-act="borrar">Borrar todos los datos</button></div>
-    <p class="muted small">Casco · versión 4 · herramienta personal de estudio. No está vinculada a Formación Ninja: solo enlaza a su plataforma.</p>`;
+    <p class="muted small">Casco · versión 5 · herramienta personal de estudio. No está vinculada a Formación Ninja: solo enlaza a su plataforma.</p>`;
 }
 function descargar(nombre, tipo, texto) {
   const a = document.createElement('a');
@@ -604,6 +612,64 @@ function crearIcs() {
     'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:En 10 minutos, a estudiar', 'TRIGGER:-PT10M', 'END:VALARM',
     'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
   descargar('alarma-estudio.ics', 'text/calendar', ics);
+}
+
+/* ---------- Guía de Atajos: alarma del Reloj que abre Casco ---------- */
+const ES_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const urlPerfil = () => location.origin + location.pathname;
+// Maqueta sencilla de una pantalla de iOS: título y filas [texto, detalle, resaltada]
+function ios(titulo, filas) {
+  return `<div class="ios"><div class="ios-t">${titulo}</div>${filas.map(([t, d, on]) =>
+    `<div class="ios-r ${on ? 'on' : ''}"><span>${t}</span>${d ? `<em>${d}</em>` : ''}</div>`).join('')}</div>`;
+}
+const PASOS_ATAJOS = [
+  {
+    t: '1 · Crea la alarma en Reloj',
+    html: () => `<ol class="steps"><li>Abre la app <b>Reloj</b> → pestaña <b>Alarmas</b> → <b>+</b>.</li>
+      <li>Pon tu hora de estudio: <b>${st.ajustes.hora}</b>.</li>
+      <li><b>Repetir</b>: de lunes a sábado (el domingo se descansa).</li>
+      <li><b>Etiqueta</b>: <b>Casco 🔥</b>. Así sabrás cuál es.</li><li>Pulsa <b>Guardar</b>.</li></ol>
+      ${ios('Nueva alarma', [[st.ajustes.hora, '', true], ['Repetir', 'Lun a sáb'], ['Etiqueta', 'Casco 🔥'], ['Sonido', 'El que quieras']])}`,
+  },
+  {
+    t: '2 · Crea la automatización',
+    html: () => `<ol class="steps"><li>Abre la app <b>Atajos</b> (viene con el iPhone; si la borraste, está gratis en la App Store).</li>
+      <li>Abajo, pestaña <b>Automatización</b> → <b>+</b> (o «Nueva automatización»).</li>
+      <li>Elige <b>Alarma</b>.</li>
+      <li>Marca <b>Existente</b> y elige la alarma <b>Casco 🔥</b>.</li>
+      <li>Marca <b>Se detiene</b>.</li>
+      <li>Marca <b>Ejecutar inmediatamente</b>, para que no te pregunte cada vez. Pulsa <b>Siguiente</b>.</li></ol>
+      ${ios('Cuando…', [['Alarma', 'Casco 🔥', true], ['Se detiene', '✓', true], ['Ejecutar inmediatamente', '✓', true]])}`,
+  },
+  {
+    t: '3 · Que abra Casco',
+    html: () => `<ol class="steps"><li>Pulsa <b>Nueva automatización en blanco</b> → <b>Añadir acción</b>.</li>
+      <li>Busca <b>Abrir app</b> y elige <b>Casco</b>${ADMIN ? ' admin' : ''} (el icono de la llama).</li>
+      <li>Pulsa <b>OK</b> (o <b>Listo</b>). ¡Ya está!</li></ol>
+      ${ios('Acción', [['Abrir app', `Casco${ADMIN ? ' admin' : ''}`, true]])}
+      <div class="card" style="margin-top:12px;background:var(--card2)"><b class="small">¿No aparece Casco en «Abrir app»?</b>
+      <p class="muted small" style="margin:4px 0 8px">Pasa en algunas versiones de iOS. Entonces usa la acción <b>Abrir URL</b> con tu dirección:</p>
+      <div class="row"><code class="grow small" style="word-break:break-all">${esc(urlPerfil())}</code>
+      <button class="btn small" data-act="copiar-url">Copiar</button></div>
+      <p class="muted small" style="margin:8px 0 0">Ojo: así se abre en Safari, que guarda sus propios datos, aparte de los del icono. En ese caso, usa Casco siempre desde Safari, o pasa los datos con la copia de seguridad.</p></div>`,
+  },
+  {
+    t: '4 · Pruébalo',
+    html: () => `<p>Pon la alarma <b>Casco 🔥</b> un minuto más tarde de la hora actual, espera a que suene y apágala.</p>
+      <p>Si se abre Casco solo, ¡conectado! Vuelve a dejar la alarma a las <b>${st.ajustes.hora}</b>.</p>
+      <p class="muted small">Truco: deja el móvil cargando en el sitio donde estudias. Cuando suene, vas a apagarla… y ya estás sentado.</p>
+      <button class="btn ok block" data-act="atajos-ok">✓ Funciona, ya está conectada</button>`,
+  },
+];
+function guiaAtajos(n) {
+  const p = PASOS_ATAJOS[n], ult = n === PASOS_ATAJOS.length - 1;
+  modal(`<div class="row between"><span class="chip fire">Paso ${n + 1} de ${PASOS_ATAJOS.length}</span>
+      <button class="btn small ghost" data-act="cerrar">✕</button></div>
+    <h3 style="font-size:20px;margin-top:12px">${p.t}</h3>${p.html()}
+    <div class="row" style="margin-top:16px">
+      ${n > 0 ? `<button class="btn ghost" data-act="atajos-ir" data-paso="${n - 1}">‹ Atrás</button>` : ''}
+      ${!ult ? `<button class="btn primary grow" data-act="atajos-ir" data-paso="${n + 1}">Siguiente ›</button>` : ''}</div>
+    ${!ES_IOS && n === 0 ? '<p class="muted small" style="margin-bottom:0">Esta guía es para el iPhone: hazla desde el móvil.</p>' : ''}`);
 }
 
 /* ---------- Intro (como el opening de un videojuego) ---------- */
@@ -785,6 +851,14 @@ document.addEventListener('click', e => {
     case 'nivel-quedar': st.oferta = lunes(hoy()); guardar(); render(); break;
     case 'tec': if (!el.classList.contains('locked')) { tecAbierta = tecAbierta === el.dataset.id ? null : el.dataset.id; render(); } break;
     case 'ics': crearIcs(); break;
+    case 'atajos': guiaAtajos(0); break;
+    case 'atajos-ir': guiaAtajos(+el.dataset.paso); break;
+    case 'atajos-ok': st.atajosHecho = true; guardar(); cerrarModal(); render(); toast('⏰ ¡Alarma conectada!'); break;
+    case 'atajos-no': st.atajosAviso = true; guardar(); render(); break;
+    case 'copiar-url':
+      (navigator.clipboard ? navigator.clipboard.writeText(urlPerfil()) : Promise.reject())
+        .then(() => toast('Dirección copiada'), () => toast('Mantén pulsada la dirección para copiarla'));
+      break;
     case 'notif': Notification.requestPermission().then(render); break;
     case 'exportar': descargar(`casco-copia-${hoy()}.json`, 'application/json', JSON.stringify(st, null, 1)); break;
     case 'borrar':

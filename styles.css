@@ -147,9 +147,10 @@ h3 { font-size: 16px; margin: 0 0 6px; }
 .seg button { border: 0; background: transparent; padding: 8px 12px; border-radius: 9px; cursor: pointer; color: var(--muted); font-weight: 600; font-size: 14px; }
 .seg button.on { background: var(--card); color: var(--text); }
 .steps { margin: 0; padding-left: 0; list-style: none; counter-reset: s; }
-.steps li { counter-increment: s; display: flex; gap: 10px; padding: 6px 0; }
+.steps li { counter-increment: s; position: relative; padding: 6px 0 6px 34px; }
 .steps li::before {
-  content: counter(s); flex: none; width: 24px; height: 24px; border-radius: 50%;
+  position: absolute; left: 0; top: 6px;
+  content: counter(s); width: 24px; height: 24px; border-radius: 50%;
   background: var(--card2); color: var(--fire2); font-weight: 700; font-size: 13px;
   display: flex; align-items: center; justify-content: center;
 }
@@ -298,3 +299,12 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
   .intro *, .intro { animation-duration: .01s !important; animation-iteration-count: 1 !important; }
   .i-embers { display: none; }
 }
+
+/* Maqueta de pantalla de iOS (guía de Atajos) */
+.ios { background: #1c1c1e; border: 1px solid #38383a; border-radius: 14px; overflow: hidden; margin-top: 12px; font-size: 15px; }
+.ios-t { padding: 10px 14px; color: #8e8e93; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; background: #111; }
+.ios-r { display: flex; justify-content: space-between; gap: 10px; padding: 11px 14px; border-top: 1px solid #38383a; }
+.ios-r em { font-style: normal; color: #8e8e93; }
+.ios-r.on { background: rgba(232,65,44,.14); }
+.ios-r.on em { color: var(--fire2); }
+code { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
