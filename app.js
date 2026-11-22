@@ -563,7 +563,7 @@ function vistaAjustes() {
       <div class="row wrap"><button class="btn" data-act="exportar">⬇️ Descargar copia</button>
       <label class="btn">⬆️ Cargar copia<input type="file" id="importar" accept="application/json,.json" hidden></label></div>
       <hr><button class="btn ghost small" data-act="borrar">Borrar todos los datos</button></div>
-    <p class="muted small">Casco · herramienta personal de estudio. No está vinculada a Formación Ninja: solo enlaza a su plataforma.</p>`;
+    <p class="muted small">Casco · versión 3 · herramienta personal de estudio. No está vinculada a Formación Ninja: solo enlaza a su plataforma.</p>`;
 }
 function descargar(nombre, tipo, texto) {
   const a = document.createElement('a');
@@ -782,4 +782,10 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) { if
 setInterval(tick, 500);
 render();
 if (!st.inicio) intro(0);
-if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  // Cuando entra una versión nueva de la app, se recarga sola (una vez)
+  const habiaSW = !!navigator.serviceWorker.controller;
+  let recargado = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (habiaSW && !recargado && !st.timer) { recargado = true; location.reload(); } });
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update()).catch(() => {});
+}

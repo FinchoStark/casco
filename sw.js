@@ -1,5 +1,5 @@
 // Service worker: deja la app disponible sin conexión.
-const CACHE = 'casco-v2';
+const CACHE = 'casco-v3';
 const FILES = ['./', 'index.html', 'styles.css', 'data.js', 'app.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 
@@ -14,7 +14,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
   e.respondWith(
-    fetch(e.request).then(r => {
+    fetch(e.request, { cache: 'no-cache' }).then(r => {
       const copia = r.clone();
       caches.open(CACHE).then(c => c.put(e.request, copia));
       return r;
